@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7C9C4936-0A06-4693-8395-FE0A2522AB19}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>FPlug</RootNamespace>
+    <AssemblyName>4PlugXWT</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>
+    </ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="System.Xml.Linq, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App.Games.cs" />
+    <Compile Include="Editor\CfgSyntax.cs" />
+    <Compile Include="Editor\Direction.cs" />
+    <Compile Include="Editor\LimitedStack.cs" />
+    <Compile Include="Editor\Loc.cs" />
+    <Compile Include="Editor\Point.cs" />
+    <Compile Include="Editor\PrimitiveList.cs" />
+    <Compile Include="Editor\Selection.cs" />
+    <Compile Include="Editor\SelectionType.cs" />
+    <Compile Include="Editor\StyledChar.cs" />
+    <Compile Include="Editor\EditorWidget.cs" />
+    <Compile Include="Editor\EditorWindow.cs" />
+    <Compile Include="Editor\Line.cs" />
+    <Compile Include="Editor\Syntax.cs" />
+    <Compile Include="Editor\TextAction.cs" />
+    <Compile Include="Editor\TextSource.cs" />
+    <Compile Include="Editor\UndoItem.cs" />
+    <Compile Include="FVersion.cs" />
+    <Compile Include="Game.cs" />
+    <Compile Include="Options\SSpace.cs" />
+    <Compile Include="Scripting2\Script.cs" />
+    <Compile Include="Scripting2\ScriptException.cs" />
+    <Compile Include="Scripting2\Variable.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="Options\SColor.cs" />
+    <Compile Include="Options\SImage.cs" />
+    <Compile Include="Scripting\FolderCache.cs" />
+    <Compile Include="Scripting\Member.cs" />
+    <Compile Include="Scripting\ScriptType.cs" />
+    <Compile Include="Scripting\ScriptType.Classes.cs" />
+    <Compile Include="Scripting\Source.cs" />
+    <Compile Include="Scripting\Source1Scheme.cs" />
+    <Compile Include="Settings.Xwt.cs" />
+    <Compile Include="Widgets\AddGamesWindow.cs" />
+    <Compile Include="Widgets\AddPluginWidget.cs" />
+    <Compile Include="App.cs" />
+    <Compile Include="Widgets\ColorPicker.cs" />
+    <Compile Include="Widgets\DirectoryPluginWidget.cs" />
+    <Compile Include="Dir.cs" />
+    <Compile Include="Widgets\DownloadPluginWidget.cs" />
+    <Compile Include="Widgets\DummyPluginWidget.cs" />
+    <Compile Include="Widgets\FilePluginWidget.cs" />
+    <Compile Include="Options\SChildDesc.cs" />
+    <Compile Include="Options\SControlCollection.cs" />
+    <Compile Include="Options\SFavouriteServer.cs" />
+    <Compile Include="Options\SRadioButton.cs" />
+    <Compile Include="Options\STabs2.cs" />
+    <Compile Include="Widgets\HudsTFDisplay.cs" />
+    <Compile Include="Widgets\PluginLayoutWidget.cs" />
+    <Compile Include="Widgets\LicensesWindow.cs" />
+    <Compile Include="Widgets\NoGameWidget.cs" />
+    <Compile Include="Widgets\PageViewer.cs" />
+    <Compile Include="Widgets\PluginWidgetLayout.cs" />
+    <Compile Include="Widgets\ImageButton.cs" />
+    <Compile Include="Widgets\MainWindow.cs" />
+    <Compile Include="Options\SBox.cs" />
+    <Compile Include="Options\SCheckBox.cs" />
+    <Compile Include="Options\SChild.cs" />
+    <Compile Include="Options\SContainer.cs" />
+    <Compile Include="Options\SComboBox.cs" />
+    <Compile Include="Options\SettingsWindow.cs" />
+    <Compile Include="Options\SLabel.cs" />
+    <Compile Include="Scripting\Attributes.cs" />
+    <Compile Include="Options\SSingleWidget.cs" />
+    <Compile Include="Options\STabControl.cs" />
+    <Compile Include="Options\STabPage.cs" />
+    <Compile Include="Options\STextInput.cs" />
+    <Compile Include="Widgets\PluginImageButton.cs" />
+    <Compile Include="Widgets\PluginTitleWidget.cs" />
+    <Compile Include="PluginType.cs" />
+    <Compile Include="Widgets\PluginWidget.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PropertPlainTextFormat.cs" />
+    <Compile Include="Widgets\PluginWidgets.cs" />
+    <Compile Include="Widgets\QuadImageLinkButton.cs" />
+    <Compile Include="Resources.cs" />
+    <Compile Include="Scripting\ScriptExceptions.cs" />
+    <Compile Include="Scripting\Function.cs" />
+    <Compile Include="Scripting\FunctionDesc.cs" />
+    <Compile Include="Scripting\Script.cs" />
+    <Compile Include="Scripting\StringParser.cs" />
+    <Compile Include="Scripting\ScriptTypeID.cs" />
+    <Compile Include="Widgets\SplashWindow.cs" />
+    <Compile Include="Widgets\SubmitFeedbackWindow.cs" />
+    <Compile Include="Widgets\TextViewerWindow.cs" />
+    <Compile Include="Util.cs" />
+    <Compile Include="LegacyVersionVar.cs" />
+    <Compile Include="Widgets\UpdateAvailableWidget.cs" />
+    <Compile Include="Widgets\VerticalLine.cs" />
+    <Compile Include="Widgets\WidgetLayout.cs" />
+    <Compile Include="XSettings.cs" />
+    <Compile Include="ZipStorer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\etf2l.png" />
+    <EmbeddedResource Include="res\expand.png" />
+    <EmbeddedResource Include="res\folder.png" />
+    <EmbeddedResource Include="res\home.png" />
+    <EmbeddedResource Include="res\steam.png" />
+    <EmbeddedResource Include="res\tftv.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\github.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\gear.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\error.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\xwt-master\Xwt\Xwt.csproj">
+      <Project>{92494904-35fa-4dc9-bde9-3a3e87ac49d3}</Project>
+      <Name>Xwt</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\noimage.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\copy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\rename.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\chglog.png" />
+    <EmbeddedResource Include="res\help.png" />
+    <EmbeddedResource Include="res\info.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\refresh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\hudstf.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\zipstorer.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Options\SettingsWindow.Legacy.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\transparent_graphic.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="4P 16 32.ico" />
+    <Content Include="4P try 1.ico" />
+    <EmbeddedResource Include="res\download.png" />
+    <EmbeddedResource Include="res\tutorial_thumb2.png" />
+    <EmbeddedResource Include="res\tutorial_thumb.png" />
+    <None Include="res\Tutorial1.png" />
+    <None Include="res\Tutorial2.png" />
+    <None Include="res\shitty_tutorial.png" />
+    <EmbeddedResource Include="res\gear_alt.png" />
+    <EmbeddedResource Include="res\4P 16.png" />
+    <EmbeddedResource Include="res\4P.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
