@@ -27,7 +27,7 @@ namespace FPlug.Options
                     control.Image = null;
                     path = value;
 
-                    string fullpath = Window.FolderCache.TryResolvePath(value, false);
+                    string fullpath = Window.FolderCache.GetFile(value).Path;
 
                     if (fullpath != null)
                     {

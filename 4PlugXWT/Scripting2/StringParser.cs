@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace FPlug.Scripting
+namespace FPlug.Scripting2
 {
     public class StringParser
     {
@@ -139,69 +139,6 @@ namespace FPlug.Scripting
             position = i;
         }
 
-        public bool ReadWhitespaceInThisLine()
-        {
-            int i = position;
-            string s = text;
-            bool returnValue = false;
-
-        start:
-            for (; i < s.Length; i++)
-            {
-                char c = s[i];
-
-                if (c == '\r' || c == '\n')
-                    returnValue = true;
-
-                if (c > ' ')
-                    break;
-            }
-
-            if (i < s.Length - 1 && s[i] == '/')
-            {
-                if (s[i + 1] == '/')
-                {
-                    i += 2;
-                    for (; i < s.Length; i++)
-                    {
-                        if (s[i] == '\n' || s[i] == '\r')
-                        {
-                            returnValue = true;
-                            break;
-                        }
-                    }
-                    goto start;
-                }
-                else if (s[i + 1] == '*')
-                {
-                    i += 2;
-                    for (; i < s.Length; i++)
-                    {
-                        char c = s[i];
-                        if (c == '\r' || c == '\n')
-                            returnValue = true;
-
-                        if (c == '*' && i < s.Length - 1 && s[i + 1] == '/')
-                        {
-                            i += 2;
-                            position = i;
-                            break;
-                        }
-                    }
-                    goto start;
-                }
-            }
-            position = i;
-            return returnValue;
-        }
-
-        public void ReadWhitespaceInThisLineOrThrow()
-        {
-            int pos = position;
-            if (ReadWhitespaceInThisLine())
-                ScriptException.ThrowUnexpectedEndOfLineException(this, pos);
-        }
-
         //public void ReadName2()
         //{
         //    int i = position;
@@ -220,7 +157,7 @@ namespace FPlug.Scripting
         //    position = i;
         //}
 
-        public string ReadToken()
+        public string ReadName()
         {
             int start = position, i = position;
             string s = text;
@@ -239,19 +176,7 @@ namespace FPlug.Scripting
             return text.Substring(start, i - start);
         }
 
-        public string ReadTokenOrThrow()
-        {
-            int pos = position;
-
-            string token = ReadToken();
-
-            if (token == "")
-                throw new ScriptException(this, position, "Not a valid token!");
-
-            return token;
-        }
-
-        public string ReadOperator()
+        public string ReadToken()
         {
             int start = position, i = position;
             string s = text;

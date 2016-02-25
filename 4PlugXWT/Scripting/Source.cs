@@ -31,6 +31,7 @@ namespace FPlug.Scripting
             string name = "";
             string v = "";
 
+        /*
             for (int i = 0; i < source.Length; i++)
             {
                 if (source[i] == '\'')
@@ -93,28 +94,28 @@ namespace FPlug.Scripting
                         return;
                     }
                     file = fileitem.Item2;
-
+                    
                     List<string> list = new List<string>();
-
+                    
                     var cache = Window.FolderCache.GetRootFromFile(file);
                     var extension = Path.GetExtension(file);
                     var filename = file.GetFileName().RemoveFromRight(extension.Length);
                     var filenameWithSeperator = filename + seperator;
-
+                    
                     string selected = null;
                     list.AddRange(cache.Files.Where((s) => s.StartsWith(filenameWithSeperator, StringComparison.OrdinalIgnoreCase) && (extension.Length == 0 || s.EndsWith(extension, StringComparison.OrdinalIgnoreCase))).Select(s => s.Substring(filenameWithSeperator.Length).RemoveFromRight(extension.Length)).Select(s => s.EndsWith(" (selected)", StringComparison.OrdinalIgnoreCase) ? s.RemoveFromRight(" (selected)".Length) : s));
 #warning selected
                     this.selected = selected;
-
+                    
                     allItems = list;
-
+                    
                     sourceType = SourceType.SwitchFile;
                 }
                 else
                 {
                     window.LogError($"unknown Source Type \"{type.Item2}\"", ErrorType.Xml);
                 }
-            }
+            }*/
         }
 
         public string GetValue()
@@ -255,7 +256,8 @@ namespace FPlug.Scripting
 
         Source1ResourceFile getScheme(string path)
         {
-            return getResource(path, SourceType.Source1Res, () => new Source1ResourceFile(Window.FolderCache, path));
+            return null;
+            //return getResource(path, SourceType.Source1Res, () => new Source1ResourceFile(Window.FolderCache, path));
         }
 
         //Source1ResourceFile getScheme(string path)

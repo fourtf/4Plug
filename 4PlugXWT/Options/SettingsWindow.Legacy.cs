@@ -404,7 +404,7 @@ namespace FPlug.Options
             Container.Layout(479);
             Container.MinHeight = Container.Height;
 
-            Script = new Scripting.Script(this, script.ToString(), folder, Tuple.Create(0, 0));
+            Script = new Scripting.Script(this, script.ToString(), folder, new Coordinate(0,0));
 
             Size = new Xwt.Size(530, 600);
         }

@@ -3,15 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FPlug.Scripting2
+namespace FPlug.Scripting
 {
-    public class Variable
+    public class Variable2
     {
         public VariableType Type { get; private set; }
         public object Object { get; private set; }
 
-        public Variable(string name)
+        public int Position { get; set; }
+        public StringParser Parser { get; set; }
+
+        public Variable2(StringParser parser, int position, string name)
         {
+            Position = position;
+            Parser = parser;
             Type = VariableType.Null;
             Object = null;
         }
@@ -43,14 +48,14 @@ namespace FPlug.Scripting2
                         }
                         else
                         {
-                            throw new ScriptException($"The variable \"_unknown\" ({(string)Object}) can not be converted into an integer.");
+                            throw new ScriptException(Parser, Position, $"The variable \"_unknown\" ({(string)Object}) can not be converted into an integer.");
                         }
                     }
                 case VariableType.Null:
-                    ScriptException.ThrowNullVarException();
+                    ScriptException.ThrowNullVarException(Parser, Position);
                     break;
                 default:
-                    ScriptException.ThrowTypeIncorrectException(VariableType.Int);
+                    ScriptException.ThrowTypeIncorrectException(Parser, Position, VariableType.Int);
                     break;
             }
             return 0;

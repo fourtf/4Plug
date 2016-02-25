@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.String;
 
 namespace FPlug.Scripting
 {
@@ -42,7 +43,7 @@ namespace FPlug.Scripting
         /// <param name="window">SettingsWindow this script belongs to.</param>
         /// <param name="script">Text of the script.</param>
         /// <param name="folder">Root folder for file operations.</param>
-        public Script(SettingsWindow window, string script, string folder, Tuple<int, int> textOffset, bool compile = true)
+        public Script(SettingsWindow window, string script, string folder, Coordinate textOffset, bool compile = true)
         {
             SettingsWindow = window;
 
@@ -77,12 +78,75 @@ namespace FPlug.Scripting
         {
             Stopwatch compileTime = Stopwatch.StartNew();
 
+            Dictionary<string, Variable2> globalVariables = new Dictionary<string, Variable2>();
+
             try
             {
-                RootBlock = ParseStack(Parser, false);
+                string token;
+                int pos;
+
+                while (true)
+                {
+                    Parser.ReadWhitespace();
+                    pos = Parser.Position;
+                    token = Parser.ReadTokenOrThrow();
+
+                    switch (token)
+                    {
+                        // Variable
+                        case "var":
+                            pos = Parser.Position; // wrong position?
+                            Parser.ReadWhitespaceInThisLineOrThrow();
+
+                            pos = Parser.Position;
+                            string name = Parser.ReadTokenOrThrow();
+
+                            if (globalVariables.ContainsKey(name)) // check for duplicate?
+                                throw new ScriptException(Parser, pos, $"Global variable \"{name}\" already exists.");
+
+
+                            pos = Parser.Position;
+
+                            if (Parser.ReadWhitespaceInThisLine())
+                            {
+                                Variable2 variable = new Variable2(Parser, pos, name);
+                                globalVariables[name] = variable;
+                            }
+                            else
+                            {
+                                if (Parser.CurrentChar == '=')
+                                {
+                                    Parser.ReadWhitespaceInThisLineOrThrow();
+
+                                    Variable2 variable = ReadVariable();
+
+                                    globalVariables[name] = variable;
+
+                                    pos = Parser.Position;
+                                    if (Parser.ReadWhitespaceInThisLine())
+                                        throw new ScriptException(Parser, pos, $"Expected end of line.");
+                                }
+                                else
+                                {
+                                    throw new ScriptException(Parser, pos, $"Expected end of line or \"=\".");
+                                }
+                            }
+                            break;
+                        // Event
+                        case "on":
+
+                            break;
+                        // Error
+                        default:
+                            ScriptException.ThrowInvalidTokenException(Parser, pos, token);
+                            break;
+                    }
+                }
+
+                //RootBlock = ParseStack(Parser, false);
                 Compiled = true;
 
-                startVariable = new Variable(new object[VariableNames.Count], this);
+                //startVariable = new Variable(new object[VariableNames.Count], this);
 
                 compileTime.Stop();
                 //Console.WriteLine("-- Compiled in " + compileTime.Elapsed.TotalMilliseconds + " ms");
@@ -99,13 +163,25 @@ namespace FPlug.Scripting
                 compileTime.Stop();
                 var loc = exc.Parser.GetTextLocation(exc.Position);
 
-                SettingsWindow.LogError(exc.Message, loc.Item1, loc.Item2, ErrorType.Compiler);
+                SettingsWindow.LogError(exc.Message, loc.Line, loc.Char, ErrorType.Compiler);
             }
             catch (Exception exc)
             {
                 Console.WriteLine("- while compiling: " + exc.Message);
             }
         }
+
+        public Variable2 ReadVariable()
+        {
+            Parser.ReadWhitespaceInThisLineOrThrow();
+
+
+
+
+
+            return null;
+        }
+
 
         /// <summary>
         /// Executes the script.
@@ -166,7 +242,7 @@ namespace FPlug.Scripting
                 if ((c = parser.CurrentChar) >= 'a' && c <= 'z') // variable or if
                 {
                     #region variable & if
-                    string name = parser.ReadName();
+                    string name = parser.ReadToken();
                     int nameposition = parser.Position;
 
                     bool isIf;
@@ -191,7 +267,7 @@ namespace FPlug.Scripting
                         {
                             parser.ReadWhitespace();
                             int tmp = parser.Position;
-                            if (parser.ReadName() == "if")
+                            if (parser.ReadToken() == "if")
                             {
                                 isIf = true;
                                 elseIf = true;
@@ -275,7 +351,7 @@ namespace FPlug.Scripting
                 {
                     #region function / property
                     int namePosition = parser.Position;
-                    string name = parser.ReadName();
+                    string name = parser.ReadToken();
                     parser.ReadWhitespace();
 
                     if (!parser.Ended() && parser.CurrentChar == '(')
@@ -347,7 +423,7 @@ namespace FPlug.Scripting
                 {
                     #region Widget
                     parser.Position++;
-                    string name = parser.ReadName();
+                    string name = parser.ReadToken();
                     var child = SettingsWindow.GetChildByID(name);
                     if (child == null)
                         throw new Exception("A Control with the name \"" + name + "\" doesn't exist");
@@ -407,7 +483,7 @@ namespace FPlug.Scripting
                 if (parser.Ended())
                     break;
 
-            calcStart:
+                calcStart:
 
                 c = parser.CurrentChar;
 

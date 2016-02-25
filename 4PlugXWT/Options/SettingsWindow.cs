@@ -81,7 +81,7 @@ namespace FPlug.Options
 
             XmlPath = xmlPath;
             Folder = folder;
-            EditMode = false;// editMode;
+            EditMode = editMode;
 
             FolderCache = new FolderCache(folder);
 
@@ -95,7 +95,7 @@ namespace FPlug.Options
             errorListView.Columns.Add("Type", errorLevelField);
             errorListView.Columns.Add("Message", errorField);
 
-            errorListView.HeightRequest = 250;
+            errorListView.HeightRequest = 200;
             // End Errors
 
             //TempSources = new Dictionary<int, object>();
@@ -189,7 +189,7 @@ namespace FPlug.Options
             VBox box = new VBox();
             box.PackStart(vbox);
             if (EditMode)
-                box.PackStart(errorListView);
+                box.PackEnd(errorListView);
             Content = box;
 
             Resizable = false;
@@ -197,12 +197,6 @@ namespace FPlug.Options
 
 
         // Events
-        protected override void OnBoundsChanged(BoundsChangedEventArgs a)
-        {
-            //ErrorWindow.Present();
-            base.OnBoundsChanged(a);
-        }
-
         protected override void OnClosed()
         {
             //if (!LegacyMode)
@@ -227,7 +221,7 @@ namespace FPlug.Options
             ClearLogs();
 
             string scriptApply = null;
-            Tuple<int, int> textOffset = null;
+            Coordinate textOffset = Coordinate.Empty;
 
             // Xml
             try
@@ -236,10 +230,10 @@ namespace FPlug.Options
 
                 StringReader reader = new StringReader(s);
                 XDocument doc = XDocument.Load(reader, LoadOptions.SetLineInfo);
-                var settings = doc.Element("Plugin").Element("Settings");
+                var settings = doc.Element("mod").Element("options");
 
                 // Window
-                var xwin = settings.Element("Window");
+                var xwin = settings.Element("window");
                 if (xwin == null)
                     Console.WriteLine("-- xml does not contain Plugin/Settings/Window");
                 else
@@ -260,13 +254,13 @@ namespace FPlug.Options
                 }
 
                 // Script
-                var xapply = settings.Element("OnApply");
+                var xapply = settings.Element("script");
                 if (xapply != null)
                 {
                     if (((IXmlLineInfo)xapply).HasLineInfo())
-                        textOffset = new Tuple<int, int>(((IXmlLineInfo)xapply).LinePosition, ((IXmlLineInfo)xapply).LineNumber);
+                        textOffset = new Coordinate(((IXmlLineInfo)xapply).LinePosition, ((IXmlLineInfo)xapply).LineNumber);
                     else
-                        textOffset = new Tuple<int, int>(0, 0);
+                        textOffset = new Coordinate(0, 0);
                     scriptApply = (string)xapply;
                 }
             }
@@ -278,7 +272,7 @@ namespace FPlug.Options
             // Script
             if (scriptApply != null)
             {
-                Script = new Scripting.Script(this, scriptApply, Folder, textOffset);
+                Script = new Script(this, scriptApply, Folder, textOffset);
             }
 
             Layout();
@@ -295,11 +289,11 @@ namespace FPlug.Options
                 PropertyInfo propInfo;
                 if (currentDesc != null && currentDesc.Events.TryGetValue(x.Name.LocalName, out propInfo))
                 {
-                    Tuple<int, int> textOffset;
+                    Coordinate textOffset;
                     if (((IXmlLineInfo)x).HasLineInfo())
-                        textOffset = new Tuple<int, int>(((IXmlLineInfo)x).LinePosition, ((IXmlLineInfo)x).LineNumber);
+                        textOffset = new Coordinate(((IXmlLineInfo)x).LinePosition, ((IXmlLineInfo)x).LineNumber);
                     else
-                        textOffset = new Tuple<int, int>(0, 0);
+                        textOffset = new Coordinate(0, 0);
                     Script script = new Scripting.Script(this, x.Value, Folder, textOffset, false);
 
                     script.RegisterVariable("this", currentChild, currentChild.ScriptType);

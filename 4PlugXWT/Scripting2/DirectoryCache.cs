@@ -5,12 +5,9 @@ using System.Linq;
 using System.Text;
 using _Path = System.IO.Path;
 
-namespace FPlug.Scripting
-{
-    //
-    //  This class desperately should definitely be refactored. Whatever ¯\_(ツ)_/¯
-    //
 
+namespace FPlug.Scripting2
+{
     public class FolderCache
     {
         public FolderCache Parent = null;

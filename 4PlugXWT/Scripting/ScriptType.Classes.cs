@@ -102,10 +102,10 @@ namespace FPlug.Scripting
             "File",
             new Method[]
             {
-                new Method("Exists", ScriptType.Bool, new ParamLambda((v, o) => v.CurrentObject = v.Script.FolderCache.FileExists((string)o)), ScriptType.String),
-                new Method("Delete", ScriptType.Bool, new ParamLambda((v, o) => v.CurrentObject = v.Script.FolderCache.DeleteFile((string)o)), ScriptType.String),
-                new Method("Move", ScriptType.Bool, new ParamsLambda((v, o) =>  v.CurrentObject = v.Script.FolderCache.TryMoveFile((string)o[0], (string)o[1])), ScriptType.String, ScriptType.String),
-                new Method("Copy", ScriptType.Bool, new ParamsLambda((v, o) =>  v.CurrentObject = v.Script.FolderCache.TryCopyFile((string)o[0], (string)o[1])), ScriptType.String, ScriptType.String),
+                //new Method("Exists", ScriptType.Bool, new ParamLambda((v, o) => v.CurrentObject = v.Script.FolderCache.FileExists((string)o)), ScriptType.String),
+                //new Method("Delete", ScriptType.Bool, new ParamLambda((v, o) => v.CurrentObject = v.Script.FolderCache.DeleteFile((string)o)), ScriptType.String),
+                //new Method("Move", ScriptType.Bool, new ParamsLambda((v, o) =>  v.CurrentObject = v.Script.FolderCache.TryMoveFile((string)o[0], (string)o[1])), ScriptType.String, ScriptType.String),
+                //new Method("Copy", ScriptType.Bool, new ParamsLambda((v, o) =>  v.CurrentObject = v.Script.FolderCache.TryCopyFile((string)o[0], (string)o[1])), ScriptType.String, ScriptType.String),
             },
             new Property[]
             {
@@ -116,10 +116,10 @@ namespace FPlug.Scripting
             "File",
             new Method[]
             {
-                new Method("Exists", ScriptType.Bool, new ParamLambda((v, o) => v.CurrentObject = v.Script.FolderCache.DirectoryExists((string)o)), ScriptType.String),
-                new Method("Delete", ScriptType.Bool, new ParamLambda((v, o) => v.CurrentObject = v.Script.FolderCache.DeleteDirectory((string)o)), ScriptType.String),
-                new Method("Move", ScriptType.Bool, new ParamsLambda((v, o) =>  v.CurrentObject = v.Script.FolderCache.TryMoveDirectory((string)o[0], (string)o[1])), ScriptType.String, ScriptType.String),
-                new Method("Copy", ScriptType.Bool, new ParamsLambda((v, o) =>  v.CurrentObject = v.Script.FolderCache.TryCopyDirectory((string)o[0], (string)o[1])), ScriptType.String, ScriptType.String),
+                //new Method("Exists", ScriptType.Bool, new ParamLambda((v, o) => v.CurrentObject = v.Script.FolderCache.DirectoryExists((string)o)), ScriptType.String),
+                //new Method("Delete", ScriptType.Bool, new ParamLambda((v, o) => v.CurrentObject = v.Script.FolderCache.DeleteDirectory((string)o)), ScriptType.String),
+                //new Method("Move", ScriptType.Bool, new ParamsLambda((v, o) =>  v.CurrentObject = v.Script.FolderCache.TryMoveDirectory((string)o[0], (string)o[1])), ScriptType.String, ScriptType.String),
+                //new Method("Copy", ScriptType.Bool, new ParamsLambda((v, o) =>  v.CurrentObject = v.Script.FolderCache.TryCopyDirectory((string)o[0], (string)o[1])), ScriptType.String, ScriptType.String),
             },
             new Property[]
             {
@@ -146,8 +146,8 @@ namespace FPlug.Scripting
             null,
             new Method[]
             {
-                new Method("TF2Scheme", _TF2Scheme, (script) => new ParamActivator(script, (sc, arg) => new Source1SchemeFile(sc.FolderCache, (string)arg)), ScriptType.String),
-                new Method("TF2Res", _Source1Res, (script) => new ParamActivator(script, (sc, arg) => new Source1ResourceFile(sc.FolderCache, (string)arg)), ScriptType.String),
+                //new Method("TF2Scheme", _TF2Scheme, (script) => new ParamActivator(script, (sc, arg) => new Source1SchemeFile(sc.FolderCache, (string)arg)), ScriptType.String),
+                //new Method("TF2Res", _Source1Res, (script) => new ParamActivator(script, (sc, arg) => new Source1ResourceFile(sc.FolderCache, (string)arg)), ScriptType.String),
                 new Method("Color", _Source1Res, (script) => new ParamActivator(script, (sc, arg) =>
                 {
                     XColor c;

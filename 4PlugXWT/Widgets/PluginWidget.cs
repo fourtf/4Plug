@@ -352,27 +352,27 @@ namespace FPlug.Widgets
             try
             {
                 XDocument doc = XDocument.Load(path);
-                var plugin = doc.Element("Plugin");
+                var plugin = doc.Element("mod");
                 if (plugin != null)
                 {
-                    var meta = plugin.Element("Info");
+                    var meta = plugin.Element("info");
                     if (meta != null)
                     {
                         XElement x;
-                        if ((x = meta.Element("Author")) != null)
+                        if ((x = meta.Element("author")) != null)
                             lblAuthor.Text = (string)x;
-                        if ((x = meta.Element("Version")) != null)
+                        if ((x = meta.Element("version")) != null)
                             lblVersion.Text = (string)x;
-                        if ((x = meta.Element("Links")) != null)
+                        if ((x = meta.Element("links")) != null)
                         {
-                            foreach (var e in x.Elements("Link"))
+                            foreach (var e in x.Elements("link"))
                                 linksQuad.AddLink((string)e);
                         }
                     }
 
                     if (allowSettings)
                     {
-                        if (plugin.Element("Settings") != null)
+                        if (plugin.Element("options") != null)
                         {
                             settingsBtn.Sensitive = true;
                             settingsBtn.Image = imgSettings;

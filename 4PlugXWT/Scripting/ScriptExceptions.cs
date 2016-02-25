@@ -35,6 +35,26 @@ namespace FPlug.Scripting
             Position = position;
             Parser = parser;
         }
+
+        public static void ThrowInvalidTokenException(StringParser parser, int position, string token)
+        {
+            throw new ScriptException(parser, position, $"Invalid token \"{token}\".");
+        }
+
+        public static void ThrowUnexpectedEndOfLineException(StringParser parser, int position)
+        {
+            throw new ScriptException(parser, position, $"Unexpected end of line.");
+        }
+
+        public static void ThrowNullVarException(StringParser parser, int position, string varName = null)
+        {
+            throw new ScriptException(parser, position, $"The variable \"{varName ?? "_unknown"} does not have a value.");
+        }
+
+        public static void ThrowTypeIncorrectException(StringParser parser, int position, VariableType type)
+        {
+            throw new ScriptException(parser, position, $"The variable must be convertible to one of the following types: {type.ToString()}");
+        }
     }
 
     public class UnexpectedCharException : ScriptException

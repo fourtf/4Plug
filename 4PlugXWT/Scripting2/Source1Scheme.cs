@@ -1,12 +1,10 @@
-﻿using FPlug.Options;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
-namespace FPlug.Scripting
+namespace FPlug.Scripting2
 {
     public class Source1SchemeFile : Source1ResourceFile
     {
@@ -19,7 +17,7 @@ namespace FPlug.Scripting
 
         public Source1SchemeFile()
         {
-
+            
         }
 
         public override void Init()

@@ -246,6 +246,11 @@ namespace FPlug
         // RUN
         public static void Run(ToolkitType type)
         {
+            var cache = new Scripting2.FolderCache(@"C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\custom\7HUD-master");
+
+            //cache.CopyFile("a.txt", "b.txt");
+            cache.DeleteDirectory("a");
+
             try
             {
                 if (File.Exists("_update.exe"))

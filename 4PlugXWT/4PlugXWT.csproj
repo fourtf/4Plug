@@ -78,9 +78,17 @@
     <Compile Include="FVersion.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="Options\SSpace.cs" />
+    <Compile Include="Scripting2\DirectoryCache.cs" />
+    <Compile Include="Scripting2\FileEntry.cs" />
     <Compile Include="Scripting2\Script.cs" />
     <Compile Include="Scripting2\ScriptException.cs" />
+    <Compile Include="Scripting2\Source1Scheme.cs" />
+    <Compile Include="Scripting2\StringParser.cs" />
     <Compile Include="Scripting2\Variable.cs" />
+    <Compile Include="Scripting\Coordinate.cs" />
+    <Compile Include="Scripting\FileEntry.cs" />
+    <Compile Include="Scripting\Link.cs" />
+    <Compile Include="Scripting\Variable2.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Options\SColor.cs" />
     <Compile Include="Options\SImage.cs" />
@@ -131,7 +139,6 @@
     <Compile Include="Widgets\PluginWidget.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertPlainTextFormat.cs" />
-    <Compile Include="Widgets\PluginWidgets.cs" />
     <Compile Include="Widgets\QuadImageLinkButton.cs" />
     <Compile Include="Resources.cs" />
     <Compile Include="Scripting\ScriptExceptions.cs" />
