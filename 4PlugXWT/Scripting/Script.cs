@@ -9,7 +9,6 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static System.String;
 
 namespace FPlug.Scripting
 {
@@ -174,10 +173,6 @@ namespace FPlug.Scripting
         public Variable2 ReadVariable()
         {
             Parser.ReadWhitespaceInThisLineOrThrow();
-
-
-
-
 
             return null;
         }

@@ -31,7 +31,7 @@ namespace FPlug.Options
 
             Title = folder;
 
-            FolderCache = new Scripting.FolderCache(folder);
+            FolderCache = new FolderCache(folder);
 
             App.InitializeOptionsTask.Wait();
 

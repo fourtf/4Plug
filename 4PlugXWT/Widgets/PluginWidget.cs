@@ -195,9 +195,9 @@ namespace FPlug.Widgets
             AddChild(new VerticalLine(), new Rectangle(28, 6, 1, 34));
 
             //---- lbl
-            lblName = new Label(Name + new string(' ', 20));
-            lblAuthor = new Label("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"); // I only choose the very best of hacks
-            lblVersion = new Label("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+            lblName = new Label(Name + new string(' ', 30));
+            lblAuthor = new Label(new string(' ', 30));
+            lblVersion = new Label(new string(' ', 30));
 
             AddChild(lblName, new Rectangle(117, 1, 132, 18));
             AddChild(lblAuthor, new Rectangle(117, 14, 132, 18));

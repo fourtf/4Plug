@@ -40,7 +40,7 @@ namespace FPlug.Widgets
                     btn.Sensitive = true;
                     App.ApplyUpdate = true;
                 };
-                client.DownloadFileAsync(new Uri(App.WinUpdateUrl), "_update.zip");
+                client.DownloadFileAsync(new Uri(App.UpdateZipUrl), "_update.zip");
 
                 btn.Clicked += (s, e) => { App.MainWindow.Close(); };
             }

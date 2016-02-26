@@ -51,10 +51,10 @@ namespace FPlug
             if (XSettings.Games.Attribute("selectedIndex") != null || (int?)XSettings.Games.Attribute("selectedIndex") == null)
                 XSettings.Games.SetAttributeValue("selectedIndex", 0);
 
-            if (App.FirstTimeSteamDetected != null)
+            if (App.DefaultSteamLibrary != null)
             {
                 var e = new XElement("library");
-                e.SetAttributeValue("path", App.FirstTimeSteamDetected);
+                e.SetAttributeValue("path", App.DefaultSteamLibrary);
                 XSettings.Games.Add(e);
             }
 

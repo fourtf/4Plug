@@ -28,6 +28,8 @@ namespace FPlug
     public static partial class App
     {
         // MISC
+        public static MainWindow MainWindow { get; set; }
+
         public static Task InitializeOptionsTask;
 
         public static string PathCustom;
@@ -43,17 +45,14 @@ namespace FPlug
 
         public static FVersion Version = new FVersion(1.1m);
 
-        public static string WinVersionUrl = "http://www.yuhrney.square7.ch/TF2/Plug.txt";
-        public static string WinUpdateUrl = "http://www.yuhrney.square7.ch/TF2/Plug.zip";
-
-        //public static String MonoVersionUrl = "http://www.yuhrney.square7.ch/TF2/Plug_mono.txt";
-        //public static String MonoUpdateUrl = "http://www.yuhrney.square7.ch/TF2/Plug_mono.zip";
+        public static string UpdateVersionUrl = null;
+        public static string UpdateZipUrl = null;
 
         public static string SteamGroup = "http://steamcommunity.com/groups/4stuff";
         public static string TfTvThread = "http://teamfortress.tv/forum/thread/13401";
 
         public static bool FirstTime = false;
-        public static string FirstTimeSteamDetected = null;
+        public static string DefaultSteamLibrary = null;
 
         public static bool ApplyUpdate = false;
 
@@ -78,7 +77,6 @@ namespace FPlug
         static List<Function> WidgetFunctions = new List<Function>();
 
         // GAMES
-        #region GameTypes
         public static Game CurrentGame { get; set; }
 
         public static void SetCurrentGame(Game game)
@@ -159,7 +157,7 @@ namespace FPlug
             //if (MainWindow != null)
             MainWindow.ReloadGames();
         }
-        #endregion GameTypes
+
 
         public static bool InstallZip(Stream stream, string name)
         {
@@ -168,8 +166,8 @@ namespace FPlug
             return CurrentGame.Type.TryInstallZip(stream, name);
         }
 
-        public static MainWindow MainWindow { get; set; }
 
+        // PARSING
         public static bool TryParsePoint(string s, out Point? point)
         {
             try
@@ -246,11 +244,7 @@ namespace FPlug
         // RUN
         public static void Run(ToolkitType type)
         {
-            var cache = new Scripting2.FolderCache(@"C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\custom\7HUD-master");
-
-            //cache.CopyFile("a.txt", "b.txt");
-            cache.DeleteDirectory("a");
-
+            // Clean up after update
             try
             {
                 if (File.Exists("_update.exe"))
@@ -260,111 +254,34 @@ namespace FPlug
             }
             catch { }
 
+
+            // Initialize XWT
             Application.Initialize(type);
 
             Icon = Image.CreateMultiSizeIcon(new[] { Resources.GetImage("4P.png"), Resources.GetImage("4P 16.png") });
 
-            #region InitalizeOptionsTask
-            InitializeOptionsTask = new Task(() =>
-                {
-                    System.Reflection.Assembly.GetExecutingAssembly()
-                        .GetTypes()
-                        .Do(t =>
-                        {
-                            object[] typeAttributes;
-                            if (t.IsClass // && t.Namespace == "FPlug.Options"
-                                && (typeAttributes = t.GetCustomAttributes(typeof(ScriptClassAttribute), false)).Length > 0)
-                            {
-                                ScriptClassAttribute typeAttribute = (ScriptClassAttribute)typeAttributes[0];
 
-                                List<Method> methods = new List<Method>();
-                                List<Property> properties = new List<Property>();
-                                List<PropertyDesc> propDescs = new List<PropertyDesc>();
-                                Dictionary<string, PropertyInfo> events = new Dictionary<string, PropertyInfo>();
+            // Init scripting async
+            InitializeScripting();
 
-                                t.GetProperties().Do((p) =>
-                                {
-                                    object[] mAttributes;
-                                    if ((mAttributes = p.GetCustomAttributes(typeof(ScriptMemberAttribute), true)).Length > 0)
-                                    {
-                                        ScriptMemberAttribute memberAttribute = (ScriptMemberAttribute)mAttributes[0];
 
-                                        Property pr0 = new Property(memberAttribute.Name ?? p.Name, ScriptType.DefaultTypes[memberAttribute.ReturnType], p);
-                                        properties.Add(pr0);
-
-                                        PropertyDesc propDesc = new PropertyDesc()
-                                        {
-                                            Name = pr0.Name,
-                                            ScriptType = ScriptType.DefaultTypes[memberAttribute.ReturnType],
-                                            Get = pr0.GetFunc,
-                                            Set = pr0.SetAction
-                                        };
-                                        propDescs.Add(propDesc);
-                                    }
-                                    else if ((mAttributes = p.GetCustomAttributes(typeof(ScriptEventAttribute), true)).Length > 0)
-                                    {
-                                        ScriptEventAttribute eventAttribute = (ScriptEventAttribute)mAttributes[0];
-
-                                        events.Add(p.Name, p);
-                                    }
-                                });
-
-                                ScriptType scriptType = new ScriptType(typeAttribute.Name, methods.ToArray(), properties.ToArray());
-
-                                ControlDesc controlDesc = new ControlDesc()
-                                {
-                                    Name = typeAttribute.Name,
-                                    ScriptType = scriptType,
-                                    Properties = propDescs,
-                                    Type = t,
-                                    Events = events
-                                };
-                                Controls.Add(controlDesc);
-
-                                ScriptTypeByType.Add(t, scriptType);
-                            }
-                        });
-
-                    //StringBuilder controls = new StringBuilder(1024);
-                    //foreach (var c in Controls.ToList().OrderBy((desc) => desc.Name))
-                    //{
-                    //    controls.AppendLine("###" + c.Name);
-                    //    if (c.Properties.Count > 2)
-                    //    {
-                    //        controls.AppendLine("|Name|Type|Description|");
-                    //        controls.AppendLine("|---|---|---|");
-                    //        foreach (var prop in c.Properties)
-                    //        {
-                    //            if (prop.Name != "ID" && prop.Name != "Width")
-                    //                controls.AppendLine("|" + prop.Name + "|" + prop.ScriptType.Name + "||");
-                    //        }
-                    //        controls.AppendLine();
-                    //    }
-                    //}
-                    //Application.Invoke(() => Clipboard.SetText(controls.ToString()));
-                });
-            #endregion
-
-            InitializeOptionsTask.Start();
-
+            // Check if started for the first time
             FirstTime = !File.Exists("config.xml");
-            //FirstTime = true;
 
             if (FirstTime)
             {
                 XSettings.Load("config.xml");
                 if (Directory.Exists(@"C:\Program Files\Steam\steamapps\common"))
-                    App.FirstTimeSteamDetected = @"C:\Program Files\Steam\steamapps\common";
+                    DefaultSteamLibrary = @"C:\Program Files\Steam\steamapps\common";
                 else if (Directory.Exists(@"C:\Program Files (x86)\Steam\steamapps\common"))
-                    App.FirstTimeSteamDetected = @"C:\Program Files (x86)\Steam\steamapps\common";
+                    DefaultSteamLibrary = @"C:\Program Files (x86)\Steam\steamapps\common";
 
                 new SplashWindow().Run();
             }
 
-            using (MainWindow w = App.MainWindow = new MainWindow())
-            //using (EditorWindow w = new EditorWindow())
-            //using (SettingsWindow w = new SettingsWindow("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Team Fortress 2\\tf\\custom\\7HUD\\plugin.xml", "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Team Fortress 2\\tf\\custom\\7HUD", true))
-            //using (SettingsWindow w = SettingsWindow.CreateLegacySettings(@"C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\custom_\7HUD", File.ReadAllLines(@"C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\custom_\7HUD\settings.data")))
+
+            // Show main window
+            using (MainWindow w = MainWindow = new MainWindow())
             {
 
                 XSettings.Load("config.xml");
@@ -386,8 +303,12 @@ namespace FPlug
                 Application.Run();
             }
 
+
+            // Save settings
             XSettings.Save();
 
+
+            // Apply updates
             if (ApplyUpdate)
             {
                 File.Copy("4PlugUpdate.exe", "_update.exe");
@@ -395,6 +316,90 @@ namespace FPlug
             }
 
             Application.Dispose();
+        }
+
+        public static void InitializeScripting()
+        {
+            InitializeOptionsTask = new Task(() =>
+            {
+                Assembly.GetExecutingAssembly()
+                    .GetTypes()
+                    .Do(t =>
+                    {
+                        object[] typeAttributes;
+                        if (t.IsClass // && t.Namespace == "FPlug.Options"
+                            && (typeAttributes = t.GetCustomAttributes(typeof(ScriptClassAttribute), false)).Length > 0)
+                        {
+                            ScriptClassAttribute typeAttribute = (ScriptClassAttribute)typeAttributes[0];
+
+                            List<Method> methods = new List<Method>();
+                            List<Property> properties = new List<Property>();
+                            List<PropertyDesc> propDescs = new List<PropertyDesc>();
+                            Dictionary<string, PropertyInfo> events = new Dictionary<string, PropertyInfo>();
+
+                            t.GetProperties().Do((p) =>
+                            {
+                                object[] mAttributes;
+                                if ((mAttributes = p.GetCustomAttributes(typeof(ScriptMemberAttribute), true)).Length > 0)
+                                {
+                                    ScriptMemberAttribute memberAttribute = (ScriptMemberAttribute)mAttributes[0];
+
+                                    Property pr0 = new Property(memberAttribute.Name ?? p.Name, ScriptType.DefaultTypes[memberAttribute.ReturnType], p);
+                                    properties.Add(pr0);
+
+                                    PropertyDesc propDesc = new PropertyDesc()
+                                    {
+                                        Name = pr0.Name,
+                                        ScriptType = ScriptType.DefaultTypes[memberAttribute.ReturnType],
+                                        Get = pr0.GetFunc,
+                                        Set = pr0.SetAction
+                                    };
+                                    propDescs.Add(propDesc);
+                                }
+                                else if ((mAttributes = p.GetCustomAttributes(typeof(ScriptEventAttribute), true)).Length > 0)
+                                {
+                                    ScriptEventAttribute eventAttribute = (ScriptEventAttribute)mAttributes[0];
+
+                                    events.Add(p.Name, p);
+                                }
+                            });
+
+                            ScriptType scriptType = new ScriptType(typeAttribute.Name, methods.ToArray(), properties.ToArray());
+
+                            ControlDesc controlDesc = new ControlDesc()
+                            {
+                                Name = typeAttribute.Name,
+                                ScriptType = scriptType,
+                                Properties = propDescs,
+                                Type = t,
+                                Events = events
+                            };
+                            Controls.Add(controlDesc);
+
+                            ScriptTypeByType.Add(t, scriptType);
+                        }
+                    });
+
+                //StringBuilder controls = new StringBuilder(1024);
+                //foreach (var c in Controls.ToList().OrderBy((desc) => desc.Name))
+                //{
+                //    controls.AppendLine("###" + c.Name);
+                //    if (c.Properties.Count > 2)
+                //    {
+                //        controls.AppendLine("|Name|Type|Description|");
+                //        controls.AppendLine("|---|---|---|");
+                //        foreach (var prop in c.Properties)
+                //        {
+                //            if (prop.Name != "ID" && prop.Name != "Width")
+                //                controls.AppendLine("|" + prop.Name + "|" + prop.ScriptType.Name + "||");
+                //        }
+                //        controls.AppendLine();
+                //    }
+                //}
+                //Application.Invoke(() => Clipboard.SetText(controls.ToString()));
+            });
+
+            InitializeOptionsTask.Start();
         }
 
         public static string[] FindHuds(List<ZipStorer.ZipFileEntry> items)

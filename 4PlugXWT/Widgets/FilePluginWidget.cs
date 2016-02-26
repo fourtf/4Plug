@@ -13,7 +13,7 @@ namespace FPlug.Widgets
             : base (path)
         {
             Name = path.GetFileName().RemoveFromRight(4);
-            lblName.Text = Name;
+            lblName.Text = Name + new string(' ', 30);
 
             moreActionsBtn.Click += (s, e) => { createCopy.Visible = false; };
         }
@@ -146,7 +146,7 @@ namespace FPlug.Widgets
                 foreach (var x in files)
                     File.Move(x.Item1, x.Item2);
                 Name = name;
-                lblName.Text = name;
+                lblName.Text = name + new string(' ', 30);
                 return true;
             }
             catch

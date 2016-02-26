@@ -7,14 +7,20 @@ using _Path = System.IO.Path;
 
 namespace FPlug.Scripting
 {
-    //
-    //  This class desperately should definitely be refactored. Whatever ¯\_(ツ)_/¯
-    //
-
     public class FolderCache
     {
+        // static
+        static char[] dirSepChars = new[] { '\\', '/' };
+
+
+        // public fields
+        public string DirectoryName { get; private set; }
+        public string FullPath { get; private set; }
+
         public FolderCache Parent = null;
 
+
+        // Folders
         private List<FolderCache> folders = null;
 
         public List<FolderCache> Folders
@@ -22,11 +28,18 @@ namespace FPlug.Scripting
             get
             {
                 if (folders == null)
-                    Load();
+                {
+                    folders = new List<FolderCache>();
+                    foreach (string s in Directory.EnumerateDirectories(FullPath))
+                    {
+                        folders.Add(new FolderCache(s) { Parent = this });
+                    }
+                }
                 return folders;
             }
         }
 
+        // Files
         private List<FileEntry> files = null;
 
         public List<FileEntry> Files
@@ -34,35 +47,39 @@ namespace FPlug.Scripting
             get
             {
                 if (files == null)
-                    Load();
+                {
+                    files = new List<FileEntry>();
+                    foreach (string s in Directory.EnumerateFiles(FullPath))
+                    {
+                        files.Add(new FileEntry(s));
+                    }
+                }
                 return files;
             }
         }
 
-        public string DirectoryName { get; private set; }
-        public string FullPath { get; private set; }
-
-        public bool Loaded { get; private set; }
 
         // ctor
         public FolderCache(string folder)
-            : this(folder, true)
+            : this(folder, false)
         {
 
         }
 
-        public FolderCache(string folder, bool preload = true)
+        public FolderCache(string folder, bool preload = false)
         {
             DirectoryName = _Path.GetFileName(folder.TrimEnd(_Path.DirectorySeparatorChar, _Path.AltDirectorySeparatorChar));
             FullPath = folder;
 
             if (preload)
-                Load();
+            {
+                var a = Folders;
+                var b = Files;
+            }
         }
 
-        static char[] dirSepChars = new[] { '\\', '/' };
 
-        // Get
+        // Get Files / Folders
         public FolderCache GetFolder(string path)
         {
             var S = path.Split(dirSepChars);
@@ -115,6 +132,7 @@ namespace FPlug.Scripting
 
             return null;
         }
+
 
         // Modify Files
         public bool DeleteFile(string path)
@@ -192,6 +210,7 @@ namespace FPlug.Scripting
             }
         }
 
+
         // Modify Directories
         public bool DeleteDirectory(string path)
         {
@@ -215,40 +234,18 @@ namespace FPlug.Scripting
 
         private void disposeFolders()
         {
-            if (Loaded)
-            {
+            if (folders != null)
                 foreach (var f in Folders)
                 {
                     f.disposeFolders();
                 }
+            if (files != null)
                 foreach (var f in Files)
                 {
                     f.SaveCache();
                 }
-            }
         }
 
-        // Load Folder Data
-        private void Load()
-        {
-            if (!Loaded)
-            {
-                folders = new List<FolderCache>();
-                files = new List<FileEntry>();
-
-                foreach (string s in Directory.EnumerateDirectories(FullPath))
-                {
-                    Folders.Add(new FolderCache(s, false) { Parent = this });
-                }
-
-                foreach (string s in Directory.EnumerateFiles(FullPath))
-                {
-                    Files.Add(new FileEntry(s));
-                }
-
-                Loaded = true;
-            }
-        }
 
         // override
         public override string ToString()

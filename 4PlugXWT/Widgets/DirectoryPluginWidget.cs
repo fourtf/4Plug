@@ -225,7 +225,7 @@ namespace FPlug.Widgets
             {
                 string pth = System.IO.Path.Combine((Installed ? App.PathCustom : App.PathCustom_), name);
                 Directory.Move(Path, pth);
-                lblName.Text = name;
+                lblName.Text = name + new string(' ', 30);
                 Name = name;
                 Path = pth;
             }

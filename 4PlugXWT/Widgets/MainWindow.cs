@@ -168,45 +168,48 @@ namespace FPlug.Widgets
 
         private void CheckUpdates()
         {
-            var client = new WebClient();
-            client.Proxy = null;
-            try
+            if (App.UpdateVersionUrl != null)
             {
-                string s = client.DownloadString(new Uri(App.WinVersionUrl));
-
-                FVersion version = FVersion.TryParse(s);
-                if (version == null)
-                    return;
-
-                if (version > App.Version)
+                var client = new WebClient();
+                client.Proxy = null;
+                try
                 {
-                    //if (DialogResult.Yes == MessageBox.Show("Unfortunally autoupdates are not implemented for linux/mac yet.\r\n\r\nDo you want to open the tf.tv page in a browser?", "An update is ready!", MessageBoxButtons.YesNo))
-                    //    Process.Start("http://teamfortress.tv/forum/thread/13401");
+                    string s = client.DownloadString(new Uri(App.UpdateVersionUrl));
 
-                    Application.Invoke(() =>
-                        {
-                            UpdateAvailableWidget w = new UpdateAvailableWidget(version);
-                            App.MainWindow.Layout.AddChild(w);
-                        });
+                    FVersion version = FVersion.TryParse(s);
+                    if (version == null)
+                        return;
 
-                    //c.Restart += new UpdateControl.OnRestart(c_Restart);
-                    //
-                    //client.DownloadFile(new Uri(App.WinUpdateUrl), "_4Plug.zip");
-                    //
-                    //for (int i = 0; i < flowContainer.Controls.Count; ++i)
-                    //{
-                    //    if (flowContainer.Controls[i] is UpdateControl)
-                    //    {
-                    //        flowContainer.Invoke(new MethodInvoker(delegate
-                    //        {
-                    //            ((UpdateControl)flowContainer.Controls[i]).SetRestart(false);
-                    //        }));
-                    //        update = true;
-                    //    }
-                    //}
+                    if (version > App.Version)
+                    {
+                        //if (DialogResult.Yes == MessageBox.Show("Unfortunally autoupdates are not implemented for linux/mac yet.\r\n\r\nDo you want to open the tf.tv page in a browser?", "An update is ready!", MessageBoxButtons.YesNo))
+                        //    Process.Start("http://teamfortress.tv/forum/thread/13401");
+
+                        Application.Invoke(() =>
+                            {
+                                UpdateAvailableWidget w = new UpdateAvailableWidget(version);
+                                App.MainWindow.Layout.AddChild(w);
+                            });
+
+                        //c.Restart += new UpdateControl.OnRestart(c_Restart);
+                        //
+                        //client.DownloadFile(new Uri(App.WinUpdateUrl), "_4Plug.zip");
+                        //
+                        //for (int i = 0; i < flowContainer.Controls.Count; ++i)
+                        //{
+                        //    if (flowContainer.Controls[i] is UpdateControl)
+                        //    {
+                        //        flowContainer.Invoke(new MethodInvoker(delegate
+                        //        {
+                        //            ((UpdateControl)flowContainer.Controls[i]).SetRestart(false);
+                        //        }));
+                        //        update = true;
+                        //    }
+                        //}
+                    }
                 }
+                catch { }
             }
-            catch { }
         }
 
         protected override void OnShown()

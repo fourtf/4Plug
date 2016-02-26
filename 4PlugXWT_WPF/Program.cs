@@ -62,7 +62,6 @@ namespace FPlugWPF
             SC_SIZE_HTBOTTOMRIGHT = 8
         }
 
-
         static IntPtr ptr;
 
         static int borderWidth = 8;
@@ -373,6 +372,7 @@ namespace FPlugWPF
                     browser.DirectoryPath = path;
                 return browser.ShowDialog(null);
             };
+
 
             //App.AddImage = (element, url, webclient) =>
             //    {
