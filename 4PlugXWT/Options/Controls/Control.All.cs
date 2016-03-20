@@ -26,13 +26,16 @@ namespace FPlug.Options.Controls
                 getDoubleFromVar = variable.GetMethod("GetDouble");
                 getIntFromVar = variable.GetMethod("GetInt");
 
+                LoadControl("empty", typeof(EmptyControl));
                 LoadControl("label", typeof(LabelControl));
+                LoadControl("button", typeof(ButtonControl));
                 LoadControl("image", typeof(ImageControl));
 
                 LoadControl("dropdown", typeof(DropDownControl));
                 LoadControl("color", typeof(ColorControl));
 
                 LoadControl("group", typeof(GroupContainer));
+                LoadControl("box", typeof(Container));
                 LoadControl("tab", typeof(Tab));
             }
             catch (Exception exc)

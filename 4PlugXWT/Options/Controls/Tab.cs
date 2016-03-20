@@ -8,8 +8,14 @@ namespace FPlug.Options.Controls
 {
     public class Tab : Container
     {
+        private string title = "tab";
+
         [ScriptMember("title")]
-        public string Text { get; set; }
+        public string Title
+        {
+            get { return title; }
+            set { title = value; if (RealTab != null) RealTab.Label = value; }
+        }
 
         public NotebookTab RealTab { get; set; }
 

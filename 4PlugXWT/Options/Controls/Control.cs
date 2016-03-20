@@ -10,7 +10,7 @@ namespace FPlug.Options.Controls
     public partial class Control : Canvas, IControl
     {
         [ScriptMember("id")]
-        public string ID { get; set; }
+        public string ID { get; set; } = null;
 
         private double widthPercent = 0;
 
@@ -21,11 +21,16 @@ namespace FPlug.Options.Controls
             set { widthPercent = Math.Max(Math.Min(value, 1), 0); }
         }
 
-        public SettingsWindow Window { get; set; }
+        private SettingsWindow window;
+
+        public SettingsWindow Window
+        {
+            get { return window; }
+            set { window = value; OnWindowSet(); }
+        }
 
         public double Height { get; set; } = 25;
         public double Width { get; set; } = 100;
-
 
         //  ctor
         public Control()
@@ -38,16 +43,23 @@ namespace FPlug.Options.Controls
         {
             base.OnDraw(ctx, dirtyRect);
 
-            ctx.SetColor(Colors.Red);
-            
-            ctx.Rectangle(0, 0, Bounds.Width, Bounds.Height);
-            
-            ctx.Stroke();
+            if (Window?.DrawRedDebugOutline ?? false)
+            {
+                ctx.SetColor(Colors.Red);
+                ctx.Rectangle(0, 0, Bounds.Width, Bounds.Height);
+                ctx.Stroke();
+                ctx.SetColor(Colors.Black);
+            }
         }
 
         public virtual void PerformLayout(double width)
         {
             Width = width;
+        }
+
+        protected virtual void OnWindowSet()
+        {
+
         }
     }
 }

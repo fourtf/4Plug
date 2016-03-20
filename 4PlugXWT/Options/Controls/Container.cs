@@ -82,8 +82,8 @@ namespace FPlug.Options.Controls
                 }
             }
             y += Padding.Bottom;
-            
-            Height = Math.Max(y + _h, 30);
+
+            MinHeight = Height = Math.Max(y + _h, 30);
         }
     }
 }

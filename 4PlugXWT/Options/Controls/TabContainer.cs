@@ -26,6 +26,7 @@ namespace FPlug.Options.Controls
 
         public void AddControl(Control c)
         {
+
             Tab tab = c as Tab;
             if (tab == null)
                 throw new ArgumentException("\"c\" needs to be a Tab");
@@ -37,7 +38,7 @@ namespace FPlug.Options.Controls
 
             scroll.Content = c;
 
-            Add(scroll, "tab");
+            Add(scroll, tab.Title);
             tab.RealTab = Tabs.First(t => ReferenceEquals(((ScrollView)t.Child).Content, tab));
         }
 

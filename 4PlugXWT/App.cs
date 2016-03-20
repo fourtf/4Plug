@@ -295,15 +295,14 @@ namespace FPlug
 
 
             // testing
-
-            //SettingsWindow w;
-            //if (Directory.Exists("C:\\"))
-            //    w = new SettingsWindow(@"C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\custom\7HUD-master\mod.xml", @"C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\custom\7HUD-master", true);
-            //else
-            //    w = new SettingsWindow(@"/home/daniel/Desktop/7HUD-master/mod.xml", @"/home/daniel/Desktop/7HUD-master/", true);
+            SettingsWindow w;
+            if (Directory.Exists("C:\\"))
+                w = new SettingsWindow(@"C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\custom\7HUD-master\mod.xml", @"C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\custom\7HUD-master", true);
+            else
+                w = new SettingsWindow(@"/home/daniel/Desktop/7HUD-master/mod.xml", @"/home/daniel/Desktop/7HUD-master/", true);
 
             // Show main window
-            using (MainWindow w = MainWindow = new MainWindow())
+            //using (MainWindow w = MainWindow = new MainWindow())
             {
 
                 XSettings.Load("config.xml");

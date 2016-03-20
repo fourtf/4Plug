@@ -1,4 +1,5 @@
 ﻿using FPlug.Options.Controls;
+using FPlug.Options.IO;
 using FPlug.Options.Scripting;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,9 @@ namespace FPlug.Options
 
         public bool UseTabs { get; private set; } = false;
 
+        public bool DrawRedDebugOutline { get; set; } = false;
+
+        public FolderCache Folder { get; private set; }
 
         //  Errors
         DataField<int> errorIndex = new DataField<int>();
@@ -28,15 +32,15 @@ namespace FPlug.Options
         ListStore errorListStore;
         ListView errorListView;
 
-        int currentindex = 0;
+        int currentError = 1;
 
-        double containerWidth = 600;
-        double containerHeight = 450;
+        double containerWidth = 800;
+        double containerHeight = 550;
 
         public void LogError(string text, ErrorType level)
         {
             var index = errorListStore.AddRow();
-            errorListStore.SetValue(index, errorIndex, currentindex++);
+            errorListStore.SetValue(index, errorIndex, currentError++);
             errorListStore.SetValue(index, errorField, text);
             errorListStore.SetValue(index, errorLevelField, level.ToString());
         }
@@ -44,7 +48,7 @@ namespace FPlug.Options
         public void LogError(string text, Coordinate coords, ErrorType level)
         {
             var index = errorListStore.AddRow();
-            errorListStore.SetValue(index, errorIndex, currentindex++); //.ToString().PadLeft(3, '0')
+            errorListStore.SetValue(index, errorIndex, currentError++); //.ToString().PadLeft(3, '0')
             errorListStore.SetValue(index, errorField, "Line " + coords.Line + ", Char " + coords.Char + Environment.NewLine + text);
             errorListStore.SetValue(index, errorLevelField, level.ToString());
         }
@@ -52,22 +56,23 @@ namespace FPlug.Options
         public void ClearLogs()
         {
             errorListStore.Clear();
-            currentindex = 0;
+            currentError = 0;
         }
 
 
         //  Window
         VBox ContainerBox;
-        IContainer Container;
+        IContainer ControlsContainer;
 
 
         //  Controls
-        Dictionary<string, Control> AllControls = new Dictionary<string, Control>();
+        Dictionary<string, IControl> ControlsByID = new Dictionary<string, IControl>();
+        List<IControl> AllControls = new List<IControl>();
 
-        public Control GetControlByID(string id)
+        public IControl GetControlByID(string id)
         {
-            Control c;
-            if (AllControls.TryGetValue(id, out c))
+            IControl c;
+            if (ControlsByID.TryGetValue(id, out c))
                 return c;
             else
                 return null;
@@ -83,6 +88,8 @@ namespace FPlug.Options
             WorkingDirectory = workingDirectory;
             XmlPath = xmlPath;
             EditMode = editMode;
+
+            Folder = new FolderCache(workingDirectory);
 
 
             // Errors
@@ -112,9 +119,19 @@ namespace FPlug.Options
             reloadButton.Clicked += (s, e) => { Reload(); };
             buttonsBox.PackEnd(reloadButton);
 
+            //CheckBox autoReloadCheck = new CheckBox("Autoreload xml on change");
+            //autoReloadCheck.Toggled += (s, e) => {  };
+
+            CheckBox outlineCheck = new CheckBox("Outline")
+            {
+                Active = DrawRedDebugOutline
+            };
+            outlineCheck.Toggled += (s, e) => { DrawRedDebugOutline = outlineCheck.Active; AllControls.Do(k => (k as Control)?.QueueDraw()); };
+            buttonsBox.PackStart(outlineCheck);
+
             // container
             ContainerBox = new VBox();
-            ContainerBox.HeightRequest = 450;
+            ContainerBox.HeightRequest = containerHeight;
 
             // content
             VBox content = new VBox();
@@ -131,6 +148,16 @@ namespace FPlug.Options
         //  (re)load xml
         public void Reload()
         {
+            AllControls.Clear();
+            ControlsByID.Clear();
+            ContainerBox.Clear();
+            errorListStore.Clear();
+            currentError = 1;
+
+            GC.Collect();
+
+            UseTabs = false;
+
             // Load XML
             XDocument xml = XDocument.Load(XmlPath, LoadOptions.SetLineInfo);
 
@@ -150,14 +177,16 @@ namespace FPlug.Options
 
                         // add container
                         if (UseTabs)
-                            ContainerBox.PackStart((TabContainer)(Container = new TabContainer() { HeightRequest = containerHeight }));
+                            ContainerBox.PackStart((TabContainer)(ControlsContainer = new TabContainer() { HeightRequest = containerHeight }));
                         else
-                            ContainerBox.PackStart((Container)(Container = new Container()));
-                        //Container.MinHeight = containerHeight;
-                        //Container.MinWidth = containerWidth;
-                        Container.Window = this;
+                            ContainerBox.PackStart(new ScrollView() { HeightRequest = containerHeight, Content = (Container)(ControlsContainer = new Container()) });
 
-                        ReadControls(window, Container, tabRequired: UseTabs);
+                        AllControls.Add((IControl)ControlsContainer);
+                        ControlsByID["window"] = (IControl)ControlsContainer;
+
+                        ControlsContainer.Window = this;
+
+                        ReadControls(window, ControlsContainer, tabRequired: UseTabs);
                         PerformLayout();
                     });
 
@@ -214,8 +243,9 @@ namespace FPlug.Options
                     }
                 });
 
+                container.AddControl(control);
 
-
+                // container
                 if (control is Container)
                 {
                     ReadControls(e, (Container)control);
@@ -225,7 +255,17 @@ namespace FPlug.Options
                     e.Elements().FirstOrDefault().Process(_e => LogError($"Warning: \"{name}\" is not a container control. All children will be ignored. ", ErrorType.Xml));
                 }
 
-                container.AddControl(control);
+                // id
+                if (control.ID != null)
+                    if (ControlsByID.ContainsKey(control.ID))
+                    {
+                        LogError($"Warning: There already is a control with the id \"{control.ID}\".", getCoordinate(e), ErrorType.Xml);
+                    }
+                    else
+                    {
+                        ControlsByID[control.ID] = control;
+                    }
+                AllControls.Add(control);
             });
         }
 
@@ -233,7 +273,7 @@ namespace FPlug.Options
         //  process layout for container
         public void PerformLayout()
         {
-            Container.PerformLayout(containerWidth);
+            ControlsContainer.PerformLayout(containerWidth);
         }
 
 

@@ -120,7 +120,7 @@ namespace FPlug.Widgets
             }
         }
 
-        protected override void OnDraw(Xwt.Drawing.Context ctx, Rectangle dirtyRect)
+        protected override void OnDraw(Context ctx, Rectangle dirtyRect)
         {
             base.OnDraw(ctx, dirtyRect);
 
@@ -310,7 +310,7 @@ namespace FPlug.Widgets
             {
                 HBox box = new HBox();
                 Button btn;
-                btn = new Button(" Reset ");
+                btn = new Button(" Reset to Default ");
                 btn.Clicked += (s, e) => { picker.Color = picker.DefaultColor; };
                 box.PackEnd(btn);
 

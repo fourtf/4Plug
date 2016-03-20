@@ -9,8 +9,14 @@ namespace FPlug.Options.Controls
 {
     public class LabelControl : Control
     {
+        private string text = "sample text";
+
         [ScriptMember("text")]
-        public string Text { get; set; }
+        public string Text
+        {
+            get { return text; }
+            set { if (text != value) { text = value; QueueDraw(); } }
+        }
 
         protected override void OnDraw(Context ctx, Rectangle dirtyRect)
         {
