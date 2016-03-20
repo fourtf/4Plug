@@ -1,5 +1,4 @@
 ﻿using FPlug.Options;
-using FPlug.Scripting;
 using FPlug.Widgets;
 using System;
 using System.Collections.Generic;
@@ -21,7 +20,6 @@ using System.Globalization;
 using System.Reflection;
 using System.Threading;
 using System.Diagnostics;
-using FPlug.Editor;
 
 namespace FPlug
 {
@@ -29,8 +27,6 @@ namespace FPlug
     {
         // MISC
         public static MainWindow MainWindow { get; set; }
-
-        public static Task InitializeOptionsTask;
 
         public static string PathCustom;
         public static string PathCustom_;
@@ -56,6 +52,7 @@ namespace FPlug
 
         public static bool ApplyUpdate = false;
 
+
         // OS SPECIFIC
         public static Action<IWidgetBackend> InitDropShadow = null;
         public static Action<IWidgetBackend> AnimateOpacityIn = null;
@@ -69,12 +66,6 @@ namespace FPlug
         public static Action<WebClient> SetCustomImageViewImageDataDownloadedEvent = null;
         public static Action<string, ImageView> SetImageAsync = null;
 
-        // SCRIPTING
-        public static List<ControlDesc> Controls = new List<ControlDesc>();
-
-        public static Dictionary<Type, ScriptType> ScriptTypeByType = new Dictionary<Type, ScriptType>();
-
-        static List<Function> WidgetFunctions = new List<Function>();
 
         // GAMES
         public static Game CurrentGame { get; set; }
@@ -241,18 +232,11 @@ namespace FPlug
             return false;
         }
 
+
         // RUN
         public static void Run(ToolkitType type)
         {
-            // Clean up after update
-            try
-            {
-                if (File.Exists("_update.exe"))
-                    File.Delete("_update.exe");
-                if (File.Exists("_update.zip"))
-                    File.Delete("_update.zip");
-            }
-            catch { }
+            Upgrade();
 
 
             // Initialize XWT
@@ -262,7 +246,37 @@ namespace FPlug
 
 
             // Init scripting async
-            InitializeScripting();
+            Script.InitializeScripting();
+
+
+            // count users
+            string fplugLocal = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ".4plug");
+
+            try
+            {
+                string idPath = Path.Combine(fplugLocal, "id10");
+                if (!Directory.Exists(fplugLocal))
+                    Directory.CreateDirectory(fplugLocal);
+
+                string id = null;
+                if (File.Exists(idPath))
+                {
+                    try
+                    {
+                        id = File.ReadAllText(idPath);
+                        if (id.Length != 10)
+                            id = null;
+                    }
+                    catch { }
+                }
+                if (id == null)
+                {
+                    id = getRandomID10();
+                    File.WriteAllText(idPath, id);
+                    new WebClient().DownloadData("http://164.132.197.197/four/4plug/registeruser.php?id10=" + id);
+                }
+            }
+            catch { }
 
 
             // Check if started for the first time
@@ -279,6 +293,14 @@ namespace FPlug
                 new SplashWindow().Run();
             }
 
+
+            // testing
+
+            //SettingsWindow w;
+            //if (Directory.Exists("C:\\"))
+            //    w = new SettingsWindow(@"C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\custom\7HUD-master\mod.xml", @"C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\custom\7HUD-master", true);
+            //else
+            //    w = new SettingsWindow(@"/home/daniel/Desktop/7HUD-master/mod.xml", @"/home/daniel/Desktop/7HUD-master/", true);
 
             // Show main window
             using (MainWindow w = MainWindow = new MainWindow())
@@ -318,88 +340,42 @@ namespace FPlug
             Application.Dispose();
         }
 
-        public static void InitializeScripting()
+
+        // Upgrade from older version of 4Plug
+        static void Upgrade()
         {
-            InitializeOptionsTask = new Task(() =>
+            // Clean up after update
+            try
             {
-                Assembly.GetExecutingAssembly()
-                    .GetTypes()
-                    .Do(t =>
-                    {
-                        object[] typeAttributes;
-                        if (t.IsClass // && t.Namespace == "FPlug.Options"
-                            && (typeAttributes = t.GetCustomAttributes(typeof(ScriptClassAttribute), false)).Length > 0)
-                        {
-                            ScriptClassAttribute typeAttribute = (ScriptClassAttribute)typeAttributes[0];
+                if (File.Exists("_update.exe"))
+                    File.Delete("_update.exe");
+                if (File.Exists("_update.zip"))
+                    File.Delete("_update.zip");
+            }
+            catch { }
+        }
 
-                            List<Method> methods = new List<Method>();
-                            List<Property> properties = new List<Property>();
-                            List<PropertyDesc> propDescs = new List<PropertyDesc>();
-                            Dictionary<string, PropertyInfo> events = new Dictionary<string, PropertyInfo>();
 
-                            t.GetProperties().Do((p) =>
-                            {
-                                object[] mAttributes;
-                                if ((mAttributes = p.GetCustomAttributes(typeof(ScriptMemberAttribute), true)).Length > 0)
-                                {
-                                    ScriptMemberAttribute memberAttribute = (ScriptMemberAttribute)mAttributes[0];
+        // get a random 10 character id
+        static string getRandomID10()
+        {
+            var bytes = new byte[8];
+            using (var rng = new System.Security.Cryptography.RNGCryptoServiceProvider())
+            {
+                rng.GetBytes(bytes);
+            }
+            ulong l = BitConverter.ToUInt64(bytes, 0);
 
-                                    Property pr0 = new Property(memberAttribute.Name ?? p.Name, ScriptType.DefaultTypes[memberAttribute.ReturnType], p);
-                                    properties.Add(pr0);
+            char[] chars = "-._abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
 
-                                    PropertyDesc propDesc = new PropertyDesc()
-                                    {
-                                        Name = pr0.Name,
-                                        ScriptType = ScriptType.DefaultTypes[memberAttribute.ReturnType],
-                                        Get = pr0.GetFunc,
-                                        Set = pr0.SetAction
-                                    };
-                                    propDescs.Add(propDesc);
-                                }
-                                else if ((mAttributes = p.GetCustomAttributes(typeof(ScriptEventAttribute), true)).Length > 0)
-                                {
-                                    ScriptEventAttribute eventAttribute = (ScriptEventAttribute)mAttributes[0];
-
-                                    events.Add(p.Name, p);
-                                }
-                            });
-
-                            ScriptType scriptType = new ScriptType(typeAttribute.Name, methods.ToArray(), properties.ToArray());
-
-                            ControlDesc controlDesc = new ControlDesc()
-                            {
-                                Name = typeAttribute.Name,
-                                ScriptType = scriptType,
-                                Properties = propDescs,
-                                Type = t,
-                                Events = events
-                            };
-                            Controls.Add(controlDesc);
-
-                            ScriptTypeByType.Add(t, scriptType);
-                        }
-                    });
-
-                //StringBuilder controls = new StringBuilder(1024);
-                //foreach (var c in Controls.ToList().OrderBy((desc) => desc.Name))
-                //{
-                //    controls.AppendLine("###" + c.Name);
-                //    if (c.Properties.Count > 2)
-                //    {
-                //        controls.AppendLine("|Name|Type|Description|");
-                //        controls.AppendLine("|---|---|---|");
-                //        foreach (var prop in c.Properties)
-                //        {
-                //            if (prop.Name != "ID" && prop.Name != "Width")
-                //                controls.AppendLine("|" + prop.Name + "|" + prop.ScriptType.Name + "||");
-                //        }
-                //        controls.AppendLine();
-                //    }
-                //}
-                //Application.Invoke(() => Clipboard.SetText(controls.ToString()));
-            });
-
-            InitializeOptionsTask.Start();
+            string s = "";
+            for (int i = 0; i < 10; i++)
+            {
+                ulong a = l % (ulong)chars.Length;
+                s += chars[a];
+                l = l / (ulong)chars.Length;
+            }
+            return s;
         }
 
         public static string[] FindHuds(List<ZipStorer.ZipFileEntry> items)
@@ -499,12 +475,6 @@ namespace FPlug
 
                 path = name + " " + i;
             }
-        }
-
-        static int uniqueID = 0;
-        public static int GetUniqueID()
-        {
-            return uniqueID++;
         }
     }
 }

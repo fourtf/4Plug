@@ -1,7 +1,9 @@
-﻿using System;
+﻿using FPlug;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xwt;
 
 namespace _4PlugXWT_MAC
 {
@@ -9,7 +11,7 @@ namespace _4PlugXWT_MAC
     {
         static void Main(string[] args)
         {
-            App.Run(ToolkitType.Wpf);
+            App.Run(ToolkitType.Cocoa);
         }
     }
 }

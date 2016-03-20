@@ -1,43 +1,26 @@
-﻿using FPlug.Scripting;
+﻿using FPlug.Options.Controls;
+using FPlug.Options.Scripting;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Timers;
 using System.Xml;
 using System.Xml.Linq;
 using Xwt;
-using Xwt.Drawing;
 
 namespace FPlug.Options
 {
-    public partial class SettingsWindow : Dialog
+    public class SettingsWindow : Window
     {
-        // Variables
-        //ScrollView ScrollContainer;
-        public new SGroup Container;
-        //SettingsWidgetTreeview treeview;
-
-        public Script Script { get; set; }
-
+        public string WorkingDirectory { get; private set; }
         public string XmlPath { get; private set; }
-        public string Folder { get; private set; }
+
         public bool EditMode { get; private set; }
 
-        public Timer xmlUpdateTimer;
-        public DateTime lastChangedTime;
+        public bool UseTabs { get; private set; } = false;
 
-        public bool LegacyMode { get; private set; }
 
-        public FolderCache FolderCache { get; set; }
-
-        bool initialized = false;
-
+        //  Errors
         DataField<int> errorIndex = new DataField<int>();
         DataField<string> errorField = new DataField<string>();
         DataField<string> errorLevelField = new DataField<string>();
@@ -47,6 +30,9 @@ namespace FPlug.Options
 
         int currentindex = 0;
 
+        double containerWidth = 600;
+        double containerHeight = 450;
+
         public void LogError(string text, ErrorType level)
         {
             var index = errorListStore.AddRow();
@@ -55,11 +41,11 @@ namespace FPlug.Options
             errorListStore.SetValue(index, errorLevelField, level.ToString());
         }
 
-        public void LogError(string text, int line, int column, ErrorType level)
+        public void LogError(string text, Coordinate coords, ErrorType level)
         {
             var index = errorListStore.AddRow();
             errorListStore.SetValue(index, errorIndex, currentindex++); //.ToString().PadLeft(3, '0')
-            errorListStore.SetValue(index, errorField, "Line " + line + ", Char " + column + Environment.NewLine + text);
+            errorListStore.SetValue(index, errorField, "Line " + coords.Line + ", Char " + coords.Char + Environment.NewLine + text);
             errorListStore.SetValue(index, errorLevelField, level.ToString());
         }
 
@@ -70,22 +56,34 @@ namespace FPlug.Options
         }
 
 
-        // CTOR
-        public SettingsWindow(string xmlPath, string folder, bool editMode)
+        //  Window
+        VBox ContainerBox;
+        IContainer Container;
+
+
+        //  Controls
+        Dictionary<string, Control> AllControls = new Dictionary<string, Control>();
+
+        public Control GetControlByID(string id)
         {
-            App.InitializeOptionsTask.Wait();
+            Control c;
+            if (AllControls.TryGetValue(id, out c))
+                return c;
+            else
+                return null;
+        }
 
-            Icon = App.Icon;
 
-            Title = folder;
+        //  CTOR
+        public SettingsWindow(string xmlPath, string workingDirectory, bool editMode)
+        {
+            Script.InitializeOptionsTask?.Wait();
 
+
+            WorkingDirectory = workingDirectory;
             XmlPath = xmlPath;
-            Folder = folder;
             EditMode = editMode;
 
-            FolderCache = new FolderCache(folder);
-
-            Size = new Size(930, /*editMode ? 750 : */200);
 
             // Errors
             errorListStore = new ListStore(errorIndex, errorLevelField, errorField /*, xField, yField*/);
@@ -96,355 +94,156 @@ namespace FPlug.Options
             errorListView.Columns.Add("Message", errorField);
 
             errorListView.HeightRequest = 200;
-            // End Errors
 
-            //TempSources = new Dictionary<int, object>();
-            Resources = new Dictionary<string, Tuple<SourceType, object>>();
-            //DisposeResource = new Dictionary<SourceType, Action<object>>();
 
-            //ErrorWindow = new Scripting.ErrorWindow();
+            // Window
+            Size = new Size(930, 200);
 
-            if (editMode)
-            {
-                //try
-                //{
-                //    Point? p;
-                //    if (XSettings.SettingsLastPosition != null && App.TryParsePoint(XSettings.SettingsLastPosition.Value, out p) && p != null)
-                //    {
-                //        this.InitialLocation = WindowLocation.Manual;
-                //        this.Location = p.Value;
-                //    }
-                //    if (XSettings.SettingsLastErrorPosition != null && App.TryParsePoint(XSettings.SettingsLastErrorPosition.Value, out p) && p != null)
-                //    {
-                //        ErrorWindow.InitialLocation = WindowLocation.Manual;
-                //        ErrorWindow.Location = p.Value;
-                //    }
-                //}
-                //catch { }
-            }
-
-            VBox vbox = new VBox();
-            //Content = vbox;
-
-            HBox hbox = new HBox();
+            // buttons
+            HBox buttonsBox = new HBox();
             Button applyButton = new Button(" Apply ");
             applyButton.Clicked += (s, e) =>
             {
-                FolderCache = new FolderCache(folder);
 
-                if (Script != null) Script.Execute();
-
-                Action<SContainer> execApply = null;
-                execApply = (c) => c.children.Do((w) => { w.ExecApplyScript(); if (w is SContainer) execApply((SContainer)w); });
-                execApply(Container);
-
-                execApply = (c) => c.children.Do((w) => { w.Apply(); if (w is SContainer) execApply((SContainer)w); });
-                execApply(Container);
-
-                execApply = (c) => c.children.Do((w) => { w.RenewSources(); if (w is SContainer) execApply((SContainer)w); });
-                execApply(Container);
-
-#warning Register source types
-                DisposeControlResources();
             };
 
-            hbox.PackEnd(applyButton);
-            vbox.PackStart(Container = new SBox());
-            Container.Window = this;
-            vbox.PackEnd(hbox);
-            vbox.HeightRequest = 450;
-
+            buttonsBox.PackEnd(applyButton);
             Button reloadButton = new Button(" Reload ");
             reloadButton.Clicked += (s, e) => { Reload(); };
-            hbox.PackEnd(reloadButton);
+            buttonsBox.PackEnd(reloadButton);
+
+            // container
+            ContainerBox = new VBox();
+            ContainerBox.HeightRequest = 450;
+
+            // content
+            VBox content = new VBox();
+            content.PackStart(ContainerBox);
+            content.PackStart(buttonsBox);
+            if (EditMode)
+                content.PackEnd(errorListView);
+            Content = content;
 
             Reload();
-
-            lastChangedTime = new FileInfo(xmlPath).LastWriteTime;
-
-            xmlUpdateTimer = new Timer(1000);
-            xmlUpdateTimer.Elapsed += (s, e) =>
-            {
-                try
-                {
-                    DateTime time = new FileInfo(XmlPath).LastWriteTime;
-                    if (File.Exists(XmlPath))
-                    {
-                        if (lastChangedTime != time)
-                        {
-                            Application.Invoke(() => { Reload(); });
-                        }
-                    }
-                    Application.Invoke(() => { lastChangedTime = time; });
-                }
-                catch
-                {
-
-                }
-            };
-            xmlUpdateTimer.Enabled = true;
-
-            initialized = true;
-
-            VBox box = new VBox();
-            box.PackStart(vbox);
-            if (EditMode)
-                box.PackEnd(errorListView);
-            Content = box;
-
-            Resizable = false;
         }
 
 
-        // Events
-        protected override void OnClosed()
-        {
-            //if (!LegacyMode)
-            //{
-            //    if (XSettings.SettingsLastPosition == null)
-            //        XSettings.SettingsLastPosition = XSettings.Add(XSettings.Settings, "lastPosition");
-            //    XSettings.SettingsLastPosition.Value = Location.X + "," + Location.Y;
-            //
-            //    if (XSettings.SettingsLastErrorPosition == null)
-            //        XSettings.SettingsLastErrorPosition = XSettings.Add(XSettings.Settings, "lastErrorPosition");
-            //    XSettings.SettingsLastErrorPosition.Value = ErrorWindow.Location.X + "," + ErrorWindow.Location.Y;
-            //}
-
-            base.OnClosed();
-        }
-
+        //  (re)load xml
         public void Reload()
         {
-            Container.Clear();
+            // Load XML
+            XDocument xml = XDocument.Load(XmlPath, LoadOptions.SetLineInfo);
 
-            Script = null;
-            ClearLogs();
-
-            string scriptApply = null;
-            Coordinate textOffset = Coordinate.Empty;
-
-            // Xml
-            try
+            // root
+            xml.Element("mod").Process(mod =>
             {
-                string s = File.ReadAllText(XmlPath);
-
-                StringReader reader = new StringReader(s);
-                XDocument doc = XDocument.Load(reader, LoadOptions.SetLineInfo);
-                var settings = doc.Element("mod").Element("options");
-
-                // Window
-                var xwin = settings.Element("window");
-                if (xwin == null)
-                    Console.WriteLine("-- xml does not contain Plugin/Settings/Window");
-                else
+                mod.Element("options").Process(options =>
                 {
-                    LoadXmlNode(xwin, Container);
-                    Action<SContainer> compileAll = null;
-                    compileAll = (c) => c.children.Do((w) =>
+                    // window
+                    options.Element("window").Process(window =>
                     {
-                        w.CompileScripts();
-                        if (w is SContainer) compileAll((SContainer)w);
+                        window.Attribute("tabs").Process(tabs =>
+                        {
+                            if (tabs.Value.ToUpper() == "TRUE")
+                                UseTabs = true;
+                        });
+
+                        // add container
+                        if (UseTabs)
+                            ContainerBox.PackStart((TabContainer)(Container = new TabContainer() { HeightRequest = containerHeight }));
+                        else
+                            ContainerBox.PackStart((Container)(Container = new Container()));
+                        //Container.MinHeight = containerHeight;
+                        //Container.MinWidth = containerWidth;
+                        Container.Window = this;
+
+                        ReadControls(window, Container, tabRequired: UseTabs);
+                        PerformLayout();
                     });
-                    compileAll(Container);
+
+                    // script
+                    options.Element("script").Process(window =>
+                    {
+
+                    });
+                });
+            });
+        }
+
+        public void ReadControls(XElement element, IContainer container, bool tabRequired = false)
+        {
+            element.Elements().Do(e =>
+            {
+                // get name
+                var name = e.Name.LocalName;
+
+                // check if tab required
+                if (tabRequired && name.ToUpper() != "TAB")
+                {
+                    LogError($"All controls inside <window> need to be <tab> when \"UseTabs\" is true", getCoordinate(e), ErrorType.Xml);
+                    return;
                 }
 
-                if (!initialized)
+                // get text offset
+                Coordinate textOffset;
+
+                // try to find control type
+                ControlType type = Control.AllControls.FirstOrDefault(c => c.Name == name);
+
+                if (type == null) // control unknown
                 {
-                    //XSettings
+                    LogError($"Invalid control type \"{name}\".", getCoordinate(e), ErrorType.Xml);
+                    return;
                 }
 
-                // Script
-                var xapply = settings.Element("script");
-                if (xapply != null)
+                Control control = type.CreateInstance();
+
+                // Set Properties
+                e.Attributes().Do(attribute =>
                 {
-                    if (((IXmlLineInfo)xapply).HasLineInfo())
-                        textOffset = new Coordinate(((IXmlLineInfo)xapply).LinePosition, ((IXmlLineInfo)xapply).LineNumber);
+                    Property prop;
+                    if (type.Properties.TryGetValue(attribute.Name.LocalName, out prop))
+                    {
+                        Variable v = new Variable();
+                        v.SetValue(attribute.Value);
+                        prop.SetVariable(control, v);
+                    }
                     else
-                        textOffset = new Coordinate(0, 0);
-                    scriptApply = (string)xapply;
-                }
-            }
-            catch (XmlException exc)
-            {
-                LogError("Malformed xml at line " + exc.LineNumber + ", column " + exc.LinePosition + ":" + Environment.NewLine + exc.Message, ErrorType.Xml);
-            }
-
-            // Script
-            if (scriptApply != null)
-            {
-                Script = new Script(this, scriptApply, Folder, textOffset);
-            }
-
-            Layout();
-            GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized);
-        }
-
-
-        public void LoadXmlNode(XElement xwin, SChild currentChild, ControlDesc currentDesc = null)
-        {
-            SContainer container = currentChild as SContainer;
-
-            foreach (XElement x in xwin.Elements())
-            {
-                PropertyInfo propInfo;
-                if (currentDesc != null && currentDesc.Events.TryGetValue(x.Name.LocalName, out propInfo))
-                {
-                    Coordinate textOffset;
-                    if (((IXmlLineInfo)x).HasLineInfo())
-                        textOffset = new Coordinate(((IXmlLineInfo)x).LinePosition, ((IXmlLineInfo)x).LineNumber);
-                    else
-                        textOffset = new Coordinate(0, 0);
-                    Script script = new Scripting.Script(this, x.Value, Folder, textOffset, false);
-
-                    script.RegisterVariable("this", currentChild, currentChild.ScriptType);
-                    propInfo.SetValue(currentChild, script, null);
-                }
-                else if (container != null)
-                {
-                    var controlDesc = App.Controls.FirstOrDefault(c => c.Name == x.Name);
-                    if (controlDesc == null)
                     {
-                        Console.WriteLine("-- unknown control " + x.Name);
-                        continue;
+                        LogError($"Unknown property \"{attribute.Name}\" in <{name}>.", getCoordinate(e), ErrorType.Xml);
                     }
+                });
 
-                    SChild child = null;
-                    child = (SChild)Activator.CreateInstance(controlDesc.Type);
 
-                    if (container.CanAddChild(child) == null)
-                        container.AddChild(child);
 
-                    foreach (XAttribute attribute in x.Attributes())
-                    {
-                        try
-                        {
-                            if (!string.IsNullOrWhiteSpace(attribute.Value))
-                            {
-                                var name = attribute.Name.LocalName;
-
-                                var prop = controlDesc.Properties.FirstOrDefault(desc => desc.Name == name);
-                                if (prop != null && prop.Set != null)
-                                {
-                                    if (prop.ScriptType == ScriptType.String)
-                                        prop.Set(child, (string)attribute);
-                                    else if (prop.ScriptType == ScriptType.Number)
-                                    {
-                                        double d;
-                                        if (Double.TryParse(attribute.Value, System.Globalization.NumberStyles.Float, CultureInfo.InvariantCulture, out d))
-                                            prop.Set(child, d);
-                                        else
-                                            LogError("Attribute \"" + attribute.Value + "\" is invalid at <" + x.Name + "." + name + ">", ErrorType.Xml);
-                                    }
-                                    else if (prop.ScriptType == ScriptType.Bool)
-                                    {
-                                        bool b;
-                                        if (bool.TryParse(attribute.Value, out b))
-                                            prop.Set(child, b);
-                                        else
-                                            LogError("Attribute \"" + attribute.Value + "\" is invalid at <" + x.Name + "." + name + ">", ErrorType.Xml);
-                                    }
-                                    else if (prop.ScriptType == ScriptType.Color)
-                                    {
-                                        Color c;
-                                        if (App.TryParseColor((string)attribute, out c))
-                                            prop.Set(child, c);
-                                        else
-                                            LogError("Attribute \"" + attribute.Value + "\" is invalid at <" + x.Name + "." + name + ">", ErrorType.Xml);
-                                    }
-                                }
-                            }
-                        }
-                        catch
-                        {
-
-                        }
-                    }
-                    LoadXmlNode(x, child, controlDesc);
-                }
-
-                //if (child is SContainer)
-            }
-        }
-
-        public SChild GetChildByID(string ID)
-        {
-            return Container.GetChildByID(ID);
-        }
-
-        public void Layout()
-        {
-            Container.Layout(900);
-            Container.MinHeight = Container.Height;
-        }
-
-        void DisposeControlResources()
-        {
-            foreach (var t in DisposeResource)
-            {
-                foreach (var kvp in Resources)
+                if (control is Container)
                 {
-                    if (kvp.Value.Item1 == t.Item1)
-                    {
-                        t.Item2(kvp.Value.Item2);
-                    }
+                    ReadControls(e, (Container)control);
                 }
-            }
-        }
-
-        public Dictionary<string, Tuple<SourceType, object>> Resources { get; private set; }
-        public static List<Tuple<SourceType, Action<object>>> DisposeResource
-        { get; }
-        =
-            new List<Tuple<SourceType, Action<object>>> {
-                Tuple.Create<SourceType, Action<object>>(SourceType.Source1Res, (res) => ((Source1ResourceFile)res).Save())
-            };
-
-        public List<SourceType> PendingActionTypes = new List<SourceType> { SourceType.SwitchFile, SourceType.Source1Res };
-        public List<Tuple<SourceType, Action>> PendingActions = new List<Tuple<SourceType, Action>>();
-
-        public void ExecPendingActions()
-        {
-            foreach (var type in PendingActionTypes)
-            {
-                foreach (var action in PendingActions)
+                else // children of control
                 {
-                    if (action.Item1 == type)
-                    {
-                        action.Item2();
-                    }
+                    e.Elements().FirstOrDefault().Process(_e => LogError($"Warning: \"{name}\" is not a container control. All children will be ignored. ", ErrorType.Xml));
                 }
-            }
-            PendingActions.Clear();
+
+                container.AddControl(control);
+            });
         }
 
-        //public Dictionary<int, object> TempSources { get; private set; }
+
+        //  process layout for container
+        public void PerformLayout()
+        {
+            Container.PerformLayout(containerWidth);
+        }
+
+
+        //  helpers
+        Coordinate getCoordinate(XElement element)
+        {
+            if (((IXmlLineInfo)element).HasLineInfo())
+                return new Coordinate(((IXmlLineInfo)element).LinePosition, ((IXmlLineInfo)element).LineNumber);
+            else
+                return new Coordinate(0, 0);
+        }
     }
-
-    public enum ErrorType
-    {
-        Compiler,
-        Execution,
-        Xml,
-        Log,
-    }
-
-    /*
-    <?xml version="1.0" encoding="UTF-8"?>
-    <Plugin>
-        <Meta>
-            <Author>Sevin</Author>
-            <Version>4.02</Version>
-            <SteamID>76561198056804798</SteamID>
-            <Links>
-                <Link>https://github.com/Sevin7/7HUD</Link>
-                <Link>http://steamcommunity.com/groups/7HUD</Link>
-                <Link>http://teamfortress.tv/forum/thread/12745</Link>
-                <Link>http://etf2l.org/forum/huds/topic-27677/</Link>
-            </Links>
-        </Meta>
-        <!--<Settings>
-            here would be the dialog code
-        </Settings>-->
-    </Plugin>
-     * */
 }

@@ -41,9 +41,9 @@ namespace FPlug.Widgets
                 pluginImage.Image = noImage;
             }
 
-            if (dir.TryGetFile("plugin.xml", out tmp))
+            if (dir.TryGetFile("mod.xml", out tmp))
             {
-                pluginDotXmlPath = "plugin.xml";
+                pluginDotXmlPath = "mod.xml";
                 LoadXml(tmp);
             }
             else if (dir.TryGetFile("data.txt", out tmp))

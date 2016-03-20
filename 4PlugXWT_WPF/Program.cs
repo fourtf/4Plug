@@ -175,15 +175,15 @@ namespace FPlugWPF
             //                    
             //                    int exStyle = (int)GetWindowLong(ptr, (int)GetWindowLongFields.GWL_EXSTYLE);
             //                    exStyle = int.MinValue;
-            //                    //exStyle |= 0x80;
-            //                    //exStyle |= 0x00020000; // CS_DROPSHADOW
-            //                    //exStyle |= (int)ExtendedWindowStyles.WS_EX_TOOLWINDOW;
-            //                    //exStyle &= ~0x0002;
-            //                    //exStyle &= ~0x00800000;
-            //                    //exStyle |= 0x00800000;
-            //                    //exStyle |= 0x00400000;
-            //                    //exStyle |= 0x08000000;
-            //                    //exStyle |= 0x00040000;
+            //                    exStyle |= 0x80;
+            //                    exStyle |= 0x00020000; // CS_DROPSHADOW
+            //                    exStyle |= (int)ExtendedWindowStyles.WS_EX_TOOLWINDOW;
+            //                    exStyle &= ~0x0002;
+            //                    exStyle &= ~0x00800000;
+            //                    exStyle |= 0x00800000;
+            //                    exStyle |= 0x00400000;
+            //                    exStyle |= 0x08000000;
+            //                    exStyle |= 0x00040000;
             //                    SetWindowLong(ptr, (int)GetWindowLongFields.GWL_EXSTYLE, (IntPtr)exStyle);
             //                };
             //        }

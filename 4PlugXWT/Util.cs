@@ -110,6 +110,22 @@ namespace FPlug
                 Console.WriteLine("  " + func(t));
         }
 
+        public static bool Process<T>(this T element, Action<T> action)
+        {
+            if (element != null)
+            {
+                action(element);
+                return true;
+            }
+            return false;
+        }
+
+        public static void Else(this bool execute, Action action)
+        {
+            if (!execute)
+                action();
+        }
+
         public static void Do<T>(this IEnumerable<T> source, Action<T> action)
         {
             foreach (T element in source)
@@ -119,12 +135,12 @@ namespace FPlug
         public static int For<T>(this IEnumerable<T> list, Action<int, T> action)
         {
             if (action == null) throw new ArgumentNullException("action");
-        
+
             var index = 0;
-        
+
             foreach (var elem in list)
                 action(index++, elem);
-        
+
             return index;
         }
 
